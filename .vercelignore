@@ -1,0 +1,7 @@
+supabase/
+docs/
+descricoes.json
+tools/
+.github/
+*.md
+config.example.js

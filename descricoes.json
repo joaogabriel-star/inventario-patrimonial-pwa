@@ -1,0 +1,46 @@
+{
+ "versao": 1,
+ "gerado_em": "2026-01-01T00:00:00+00:00",
+ "origem": "demonstracao (itens 100% fictícios; sem números patrimoniais, valores ou datas)",
+ "limpeza": "descrições sem sequências de 6+ dígitos e sem trechos de série",
+ "itens": {
+  "MONITOR": [
+   { "descricao": "MONITOR LED 24 POLEGADAS", "item_material": "100001" },
+   { "descricao": "MONITOR LED 27 POLEGADAS", "item_material": "100002" }
+  ],
+  "MICROCOMPUTADOR": [
+   { "descricao": "MICROCOMPUTADOR DESKTOP", "item_material": "100003" }
+  ],
+  "NOTEBOOK": [
+   { "descricao": "NOTEBOOK 14 POLEGADAS", "item_material": "100004" }
+  ],
+  "MESA": [
+   { "descricao": "MESA DE TRABALHO RETA", "item_material": "100005" },
+   { "descricao": "MESA DE REUNIAO OVAL", "item_material": "100006" }
+  ],
+  "CADEIRA": [
+   { "descricao": "CADEIRA GIRATORIA COM BRACOS", "item_material": "100007" }
+  ],
+  "POLTRONA": [
+   { "descricao": "POLTRONA DE ESPERA", "item_material": "100008" }
+  ],
+  "GAVETEIRO": [
+   { "descricao": "GAVETEIRO VOLANTE 3 GAVETAS", "item_material": "100009" }
+  ],
+  "ARMARIO": [
+   { "descricao": "ARMARIO ALTO COM PORTAS", "item_material": "100010" }
+  ],
+  "IMPRESSORA": [
+   { "descricao": "IMPRESSORA MULTIFUNCIONAL LASER", "item_material": "100011" }
+  ],
+  "PROJETOR": [
+   { "descricao": "PROJETOR MULTIMIDIA", "item_material": "100012" }
+  ],
+  "TELEVISOR": [
+   { "descricao": "TELEVISOR LED 50 POLEGADAS", "item_material": "100013" }
+  ],
+  "AR CONDICIONADO": [
+   { "descricao": "AR CONDICIONADO SPLIT 12000 BTU", "item_material": "100014" }
+  ]
+ }
+}

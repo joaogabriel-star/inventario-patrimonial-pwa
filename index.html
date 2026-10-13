@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="pt-BR" data-tema="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" id="metaTheme" content="#1d4f7c">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Inventário">
+<script src="tema-inicial.js"></script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+<title>Inventário Patrimonial</title>
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand">Inventário Patrimonial<small class="brand-sub"> demonstração</small></div>
+  <div class="chips">
+    <span id="statusSaved">💾 0 salvos</span>
+    <span id="statusStorage" class="chip">armazenamento: ?</span>
+    <button id="statusSync" class="chip chip-btn" type="button" hidden></button>
+    <span id="statusModo" class="chip">Modo local (sem servidor)</span>
+  </div>
+</header>
+
+<div id="installWarn" class="banner warn" hidden></div>
+<div id="updateBanner" class="banner info" hidden></div>
+
+<main>
+
+<!-- ============ REGISTRAR ============ -->
+<section id="tab-registrar" class="tab">
+  <button id="salaBanner" class="sala-banner" type="button"></button>
+
+  <div class="scanbox">
+    <video id="video" playsinline muted autoplay></video>
+    <div class="guide" id="guide"></div>
+    <div class="flash" id="flash"></div>
+    <div class="scan-off" id="scanOff">Câmera desligada</div>
+  </div>
+  <div class="row">
+    <button id="btnScan" class="btn primary" type="button">📷 Ligar câmera</button>
+    <button id="btnTorch" class="btn" type="button" hidden>🔦</button>
+  </div>
+  <div id="torchHint" class="small" hidden>Dica: ligue a lanterna pela Central de Controle antes de ligar a câmera (pode não funcionar neste aparelho).</div>
+  <label id="zoomRow" class="small" hidden>Zoom <input id="zoomRange" type="range"></label>
+  <div id="scanMsg" role="status" aria-live="polite"></div>
+
+  <div id="editBanner" class="banner info" hidden></div>
+
+  <div class="modos">
+    <label class="check"><input type="radio" name="modo" value="normal" checked> Etiqueta do patrimônio (lida ou digitada)</label>
+    <label class="check"><input type="radio" name="modo" value="campo"> Etiquetado em campo (li/digitei a etiqueta nova que colei)</label>
+    <label class="check"><input type="radio" name="modo" value="sem"> Sem etiqueta (código provisório)</label>
+  </div>
+  <div id="codProv" class="small"></div>
+
+  <div class="field">
+    <label for="inNumero">Número da etiqueta <span class="hint">(qualquer quantidade de dígitos; zeros à esquerda são mantidos)</span></label>
+    <input id="inNumero" type="text" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="01888">
+    <div id="altNumero" class="alert"></div>
+  </div>
+  <div class="field">
+    <label for="selSerie">Série da etiqueta <span class="hint" id="serieHint"></span></label>
+    <select id="selSerie">
+      <option value="curto">curto — 5 caracteres, zero à esquerda</option>
+      <option value="longo">longo — 7 ou 8 dígitos</option>
+      <option value="outra">outra — demais</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="inObs">Observação <span class="hint" id="obsHint">(opcional)</span></label>
+    <input id="inObs" type="text" autocomplete="off" maxlength="200">
+  </div>
+
+  <div class="field">
+    <label>Tipo do bem</label>
+    <div id="chips" class="chips-tipos"></div>
+    <div class="combo" id="cmbTipo">
+      <button type="button" class="combo-btn" aria-haspopup="listbox" aria-expanded="false"><span class="combo-val">— escolha o tipo —</span><span aria-hidden="true">▾</span></button>
+      <div class="combo-pop" hidden>
+        <input type="search" class="combo-q" placeholder="Buscar tipo…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Buscar tipo">
+        <ul class="combo-list" role="listbox"></ul>
+      </div>
+    </div>
+    <input id="inTipoOutro" type="text" placeholder="Descreva o tipo" hidden maxlength="80">
+    <label class="check"><input id="chkFixar" type="checkbox"> Manter o mesmo tipo (e descrição) no próximo bem</label>
+  </div>
+
+  <div class="field">
+    <label>Descrição do bem <span class="hint" id="descInfo"></span></label>
+    <div class="combo" id="cmbDesc">
+      <button type="button" class="combo-btn" aria-haspopup="listbox" aria-expanded="false"><span class="combo-val">— sem descrição —</span><span aria-hidden="true">▾</span></button>
+      <div class="combo-pop" hidden>
+        <input type="search" class="combo-q" placeholder="Buscar descrição…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Buscar descrição">
+        <ul class="combo-list" role="listbox"></ul>
+      </div>
+    </div>
+    <input id="inDescLivre" type="text" placeholder="Digite a descrição" hidden maxlength="200" autocomplete="off">
+    <div id="descMat" class="small"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="field">
+      <label for="inMarca">Marca do produto</label>
+      <input id="inMarca" type="text" list="dlMarca" autocomplete="off" maxlength="60" placeholder="Dell, HP…">
+      <datalist id="dlMarca"></datalist>
+    </div>
+    <div class="field">
+      <label for="selFornec">Fornecedor</label>
+      <select id="selFornec">
+        <option value="">—</option>
+        <option value="Órgão A">Órgão A</option>
+        <option value="Órgão B">Órgão B</option>
+      </select>
+    </div>
+  </div>
+  <label class="check"><input id="chkFixarMF" type="checkbox"> Manter marca e fornecedor no próximo bem</label>
+
+  <div class="row">
+    <button id="btnSalvar" class="btn big ok" type="button">Salvar</button>
+    <button id="btnLimpar" class="btn" type="button">Limpar</button>
+  </div>
+  <div id="lastBox" class="lastbox" hidden></div>
+  <button id="btnDesfazer" class="btn warnbtn" type="button">↩ Desfazer meu último registro</button>
+</section>
+
+<!-- ============ BENS ============ -->
+<section id="tab-bens" class="tab" hidden>
+  <h2>Bens registrados</h2>
+  <div id="filtroBar" class="filtro-bar" hidden></div>
+  <input id="qBens" type="search" placeholder="Buscar nº, sala, tipo, marca, observação…">
+  <div id="countBens" class="small"></div>
+  <div id="listBens"></div>
+</section>
+
+<!-- ============ SALAS ============ -->
+<section id="tab-salas" class="tab" hidden>
+  <h2>Salas</h2>
+  <button id="btnNovaSala" class="btn primary block" type="button">＋ Cadastrar sala nova</button>
+  <input id="qSalas" type="search" placeholder="Buscar sala, coordenação, UORG, andar, localidade…">
+  <div id="listSalas"></div>
+</section>
+
+<!-- ============ DIAGNÓSTICO ============ -->
+<section id="tab-diag" class="tab" hidden>
+  <h2>Modo diagnóstico</h2>
+  <p class="small">Aponte a câmera para uma etiqueta. Aqui aparece exatamente a simbologia e o conteúdo lidos. Nada é salvo.</p>
+  <div class="scanbox">
+    <video id="videoD" playsinline muted autoplay></video>
+    <div class="guide wide"></div>
+    <div class="flash" id="flashD"></div>
+    <div class="scan-off" id="scanOffD">Câmera desligada</div>
+  </div>
+  <div class="row">
+    <button id="btnScanD" class="btn primary" type="button">📷 Ligar câmera</button>
+    <button id="btnTorchD" class="btn" type="button" hidden>🔦</button>
+  </div>
+  <div id="torchHintD" class="small" hidden>Dica: ligue a lanterna pela Central de Controle antes de ligar a câmera (pode não funcionar neste aparelho).</div>
+  <label id="zoomRowD" class="small" hidden>Zoom <input id="zoomRangeD" type="range"></label>
+  <div class="field">
+    <label for="selEngine">Motor de leitura</label>
+    <select id="selEngine">
+      <option value="auto">Automático (nativo se existir, senão WASM)</option>
+      <option value="native">Só nativo do navegador</option>
+      <option value="wasm">Só WASM (ZXing-C++)</option>
+    </select>
+  </div>
+  <div id="diagInfo" class="small"></div>
+  <div class="row">
+    <button id="btnCopyDiag" class="btn" type="button">Copiar log</button>
+    <button id="btnClearDiag" class="btn" type="button">Limpar</button>
+  </div>
+  <div id="diagLog"></div>
+</section>
+
+<!-- ============ MAIS ============ -->
+<section id="tab-mais" class="tab" hidden>
+  <h2>Aparência</h2>
+  <div id="temaBtns" class="seg">
+    <button type="button" data-t="auto">Automático</button>
+    <button type="button" data-t="light">Claro</button>
+    <button type="button" data-t="dark">Escuro</button>
+  </div>
+  <div id="infoIOS" class="banner info" hidden></div>
+
+  <h2>Conta e sincronização</h2>
+  <div id="syncInfo" class="small"></div>
+  <div class="row wrap">
+    <button id="btnSyncAgora" class="btn primary" type="button" hidden>Sincronizar agora</button>
+    <button id="btnLogin" class="btn primary" type="button" hidden>Entrar</button>
+    <button id="btnSenha" class="btn" type="button" hidden>Trocar senha</button>
+    <button id="btnSair" class="btn" type="button" hidden>Sair</button>
+  </div>
+
+  <div id="adminBox" hidden>
+    <h2>Administração</h2>
+    <p class="small">Só o administrador vê esta seção. Precisa de internet. Tudo fica na auditoria e pode ser desfeito em “Movimentos recentes”.</p>
+
+    <h3>Mover bens para outra sala</h3>
+    <div class="field"><label for="admOrigem">Ver os bens da sala</label><select id="admOrigem"></select></div>
+    <input id="admBusca" type="search" placeholder="Buscar nº, tipo ou marca…">
+    <div id="admListaBens" class="small"></div>
+    <div class="row wrap">
+      <button id="admMarcarTodos" class="btn" type="button">Marcar todos</button>
+      <button id="admLimparMarcas" class="btn" type="button">Limpar marcas</button>
+    </div>
+    <div class="field"><label for="admDestino">Mover os marcados para a sala</label><select id="admDestino"></select></div>
+    <button id="admMover" class="btn primary" type="button">Mover marcados (0)</button>
+
+    <h3>Mesclar salas duplicadas</h3>
+    <p class="small">A sala escolhida em “vai sumir” deixa de aparecer, e todos os bens dela vão para a sala que fica. Nada é apagado.</p>
+    <div class="field"><label for="admMescOrigem">Sala que vai sumir</label><select id="admMescOrigem"></select></div>
+    <div class="field"><label for="admMescDestino">Sala que fica (recebe os bens)</label><select id="admMescDestino"></select></div>
+    <button id="admMesclar" class="btn danger" type="button">Mesclar…</button>
+
+    <h3>Movimentos recentes</h3>
+    <div id="admMovimentos" class="small"></div>
+    <button id="admAtualizarMov" class="btn" type="button">Atualizar lista</button>
+
+    <h3>Usuários</h3>
+    <p class="small">Aprove perfis novos, desative ou reative contas e troque entre coletor e administrador. Nada é apagado. Para redefinir uma senha, use o painel do Supabase e depois “Exigir troca de senha”.</p>
+    <div id="admUsuarios" class="small"></div>
+    <button id="admAtualizarUsuarios" class="btn" type="button">Atualizar lista</button>
+
+    <h3>Exportar pelo servidor</h3>
+    <p class="small">Baixa os bens <b>direto do servidor</b> (completo, mesmo que este aparelho não esteja sincronizado) e gera o CSV com as mesmas colunas do CSV normal. Cada exportação fica na auditoria do servidor.</p>
+    <label class="check"><input id="admChkPessoais" type="checkbox"> Incluir dados pessoais do responsável (nome, matrícula e CPF)</label>
+    <div class="row wrap">
+      <button id="admCsvExcel" class="btn primary" type="button">CSV para Excel (servidor)</button>
+      <button id="admCsvDados" class="btn" type="button">CSV de dados (servidor)</button>
+    </div>
+    <div id="admExportInfo" class="small"></div>
+  </div>
+
+  <h2>Exportar</h2>
+  <div class="row wrap">
+    <button id="btnCsvExcel" class="btn primary" type="button">CSV para Excel</button>
+    <button id="btnCsvDados" class="btn" type="button">CSV de dados</button>
+    <button id="btnJson" class="btn" type="button">Cópia completa (JSON)</button>
+    <button id="btnCsvPlanilha" class="btn" type="button">Planilha: localizados e não localizados (CSV)</button>
+  </div>
+  <p class="small">O CSV da planilha mostra, para cada número da planilha, se foi <b>localizado</b> (alguém já leu a etiqueta) ou <b>não localizado</b>, em que sala e por quem. Sincronize antes: ele vale até a última sincronização deste aparelho.</p>
+  <label class="check"><input id="chkPessoais" type="checkbox"> Incluir dados pessoais do responsável (nome, matrícula e CPF) nos CSVs</label>
+  <p class="small">“CSV para Excel” grava o patrimônio como <code>="01888"</code> para o Excel não remover o zero à esquerda. Se outro sistema for ler o arquivo, use “CSV de dados”. Por padrão os CSVs <b>não</b> trazem nome, matrícula nem CPF do responsável. A cópia JSON é um backup completo e contém tudo, inclusive CPF: guarde com cuidado. Cada exportação é registrada na auditoria.</p>
+
+  <h2>Usuário e armazenamento</h2>
+  <div id="infoUser" class="small"></div>
+  <div class="row wrap">
+    <button id="btnTrocarUser" class="btn" type="button">Trocar usuário</button>
+    <button id="btnPersist" class="btn" type="button">Pedir armazenamento persistente</button>
+  </div>
+  <div id="infoStorage" class="small"></div>
+
+  <h2>Localidades</h2>
+  <div id="listLocais"></div>
+  <div class="row"><input id="novoLocal" type="text" placeholder="Nova localidade" maxlength="60"><button id="btnAddLocal" class="btn" type="button">Adicionar</button></div>
+
+  <h2>Tipos de bem</h2>
+  <div id="listTipos"></div>
+  <div class="row"><input id="novoTipo" type="text" placeholder="Novo tipo (ex.: LOUSA)"><button id="btnAddTipo" class="btn" type="button">Adicionar</button></div>
+
+  <h2>Descrições dos bens</h2>
+  <p class="small" id="infoDesc"></p>
+  <div class="field"><label for="dTipo">Tipo</label><select id="dTipo"></select></div>
+  <input id="dBusca" type="search" placeholder="Buscar descrição ou Item Material…">
+  <div id="listDesc"></div>
+  <div class="field"><label for="dNova">Nova descrição (no tipo escolhido acima)</label><input id="dNova" type="text" maxlength="200" autocomplete="off"></div>
+  <div class="row"><input id="dMat" type="text" placeholder="Item Material (opcional)" maxlength="30" autocomplete="off"><button id="btnAddDesc" class="btn" type="button">Adicionar</button></div>
+
+  <h2>Auditoria (últimos 40)</h2>
+  <div id="listAud" class="small"></div>
+
+  <h2>Zona de perigo</h2>
+  <button id="btnApagar" class="btn danger" type="button">Exportar JSON e limpar dados locais</button>
+  <p class="small">Baixa uma cópia completa e só então pede confirmação para apagar os dados <b>deste aparelho</b>. Com servidor configurado, fica bloqueado enquanto houver registros pendentes.</p>
+  <p class="small" id="verInfo"></p>
+</section>
+
+</main>
+
+<nav id="nav">
+  <button data-tab="registrar" class="on" type="button">📷<span>Registrar</span></button>
+  <button data-tab="bens" type="button">📋<span>Bens</span></button>
+  <button data-tab="salas" type="button">🚪<span>Salas</span></button>
+  <button data-tab="diag" type="button">🔬<span>Diagnóstico</span></button>
+  <button data-tab="mais" type="button">⚙️<span>Mais</span></button>
+</nav>
+
+<!-- painel: cadastrar / editar sala -->
+<div id="salaPanel" class="panel" hidden>
+  <div class="panel-card">
+    <h3 id="salaPanelTitulo">Cadastrar sala nova</h3>
+    <div class="field"><label for="sNome">Número / nome da sala *</label><input id="sNome" type="text" autocomplete="off"></div>
+    <div id="sSug" class="alert"></div>
+    <div class="field"><label for="sCoord">Coordenação *</label><input id="sCoord" type="text" list="dlCoord" autocomplete="off"><datalist id="dlCoord"></datalist></div>
+    <div class="field"><label for="sUorg">UORG da sala</label><input id="sUorg" type="text" autocomplete="off"></div>
+    <div class="grid2">
+      <div class="field"><label for="sAndar">Andar</label><input id="sAndar" type="text" list="dlAndar" autocomplete="off"><datalist id="dlAndar"></datalist></div>
+      <div class="field"><label for="sLocal">Localidade</label><select id="sLocal"></select></div>
+    </div>
+    <h4>Responsável pela sala <span class="hint">(tudo opcional)</span></h4>
+    <div class="field"><label for="rNome">Nome</label><input id="rNome" type="text" autocomplete="off"></div>
+    <div class="grid2">
+      <div class="field"><label for="rSiorg">SIORG</label><input id="rSiorg" type="text" inputmode="numeric" autocomplete="off"></div>
+      <div class="field"><label for="rUorg">UORG do responsável</label><input id="rUorg" type="text" autocomplete="off"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="rCpf">CPF</label><input id="rCpf" type="text" inputmode="numeric" autocomplete="off"><div id="rCpfAlt" class="alert"></div></div>
+      <div class="field"><label for="rMat">Matrícula</label><input id="rMat" type="text" autocomplete="off"></div>
+    </div>
+    <div class="row"><button id="btnCancelarSala" class="btn" type="button">Cancelar</button><button id="btnSalvarSala" class="btn big ok" type="button">Salvar sala</button></div>
+  </div>
+</div>
+
+<!-- login, perfil (primeiro acesso) e troca de senha -->
+<div id="authPanel" class="panel" hidden>
+  <div class="panel-card">
+    <h3 id="authTitulo">Entrar</h3>
+    <div id="authLogin" hidden>
+      <div class="field"><label for="authEmail">E-mail</label><input id="authEmail" type="text" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
+      <div class="field"><label for="authSenhaAtual">Senha</label><input id="authSenhaAtual" type="password" autocomplete="current-password" class="campo"></div>
+      <button id="btnAuthEntrar" class="btn primary block" type="button">Entrar</button>
+      <p class="small">Sem recuperação por e-mail: se esquecer a senha, peça ao administrador para redefinir.</p>
+    </div>
+    <div id="authPerfil" hidden>
+      <p class="small">Primeiro acesso. O nome aparece em “quem registrou”. A sigla (2 a 4 letras ou números) é única por pessoa e vira parte do código provisório <code>SEM-sigla-0001</code>. Sem perfil, o app não sincroniza.</p>
+      <div class="field"><label for="authNome">Seu nome</label><input id="authNome" type="text" autocomplete="name"></div>
+      <div class="field"><label for="authSigla">Sigla</label><input id="authSigla" type="text" maxlength="4" autocomplete="off" autocapitalize="characters"></div>
+      <button id="btnAuthPerfil" class="btn primary block" type="button">Salvar perfil</button>
+    </div>
+    <div id="authSenha" hidden>
+      <p id="authSenhaAviso" class="banner warn" hidden>Primeiro acesso: a senha provisória que o administrador passou precisa ser trocada agora. Use pelo menos 10 caracteres.</p>
+      <div class="field"><label for="authSenhaVelha">Senha atual</label><input id="authSenhaVelha" type="password" autocomplete="current-password" class="campo"></div>
+      <div class="field"><label for="authSenhaNova">Nova senha (mínimo 10 caracteres)</label><input id="authSenhaNova" type="password" autocomplete="new-password" class="campo"></div>
+      <div class="field"><label for="authSenhaRep">Repita a nova senha</label><input id="authSenhaRep" type="password" autocomplete="new-password" class="campo"></div>
+      <button id="btnAuthSenha" class="btn primary block" type="button">Trocar senha</button>
+    </div>
+    <div id="authInativo" hidden></div>
+    <div id="authAprovacao" hidden>
+      <p>Seu perfil foi criado e <b>aguarda a aprovação do administrador</b>. Enquanto isso você ainda não pode registrar bens: o que fosse salvo agora não entraria na fila de envio.</p>
+      <button id="btnAuthVerificar" class="btn primary block" type="button">Verificar agora</button>
+    </div>
+    <div id="authMsg" class="alert" role="status"></div>
+    <button id="authFechar" class="btn block" type="button" hidden>Fechar</button>
+  </div>
+</div>
+
+<div id="modal" hidden>
+  <div class="modal-card">
+    <h3 id="mTitle"></h3>
+    <div id="mBig" class="big-num" hidden></div>
+    <p id="mMsg"></p>
+    <input id="mInput" type="text" autocomplete="off" hidden>
+    <select id="mSelect" aria-label="Escolha" hidden></select>
+    <div class="row"><button id="mCancel" class="btn" type="button">Cancelar</button><button id="mOk" class="btn primary" type="button">OK</button></div>
+  </div>
+</div>
+<div id="toast" hidden></div>
+
+<script src="config.js"></script>
+<script src="remote-adapter.js"></script>
+<script src="sync.js"></script>
+<script src="vendor/barcode-detector.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
