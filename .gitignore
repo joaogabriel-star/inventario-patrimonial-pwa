@@ -1,0 +1,53 @@
+# Segredos
+.env
+.env.*
+# configuração local do Supabase (URL + chave publishable; no Vercel é gerado no build)
+config.js
+
+# Dependências
+node_modules/
+
+# Dados do inventário: nunca versionar
+*.csv
+*.xlsx
+*.xls
+*.xlsm
+*.xlsb
+*.ods
+# planilhas de origem e exportações
+bens registrados*
+exportacoes/
+
+# Backups, dumps e exportações completas do app
+*.json.bak
+patrimonio_backup_*.json
+# (ancorado na raiz com "/" de propósito: sem isso a pasta tools/backup/ com o script também seria ignorada)
+/backup*/
+backups/
+chave*
+*.age.sha256
+*.dump
+*.sql.gz
+*.age
+*.gpg
+
+# Arquivos temporários de teste (corpo de requisições, respostas, resultados)
+body.json
+resposta*.json
+resultado*.json
+
+# Arquivos SQL gerados a partir de dados reais (nunca versionar)
+supabase/seed_descricoes.sql
+
+# Arquivos temporários de teste
+_t.html
+_*.html
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.vercel/
+
+# anotações locais
+AUDITORIA.md
