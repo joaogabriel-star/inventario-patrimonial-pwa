@@ -10,6 +10,9 @@ Aplicativo para celular (PWA) para fazer o **inventário de bens patrimoniais**:
 (ou aceita o número digitado) e registra o bem na sala escolhida. Funciona **sem internet**: tudo é salvo primeiro no celular
 e enviado ao servidor (Supabase) quando houver conexão.
 
+**Demo publicada:** [inventario-patrimonial-pwa.vercel.app](https://inventario-patrimonial-pwa.vercel.app/). O cadastro está
+desativado e o acesso exige login; as telas da seção "Telas" mostram o app com os dados de demonstração.
+
 Este repositório é uma **versão de demonstração genérica** de um app real de campo. Todos os dados de exemplo são fictícios
 (um "Ministério Demo"); nenhuma organização, pessoa ou patrimônio real aparece aqui.
 
